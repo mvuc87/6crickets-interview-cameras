@@ -54,7 +54,7 @@ const testCases: TestCase[] = [
     desiredDistance:  [1, 2],
     desiredLghtLevel: [1, 2],
     hardware: [
-      { distance:   [1, 2], lightLevel: [1, 2], }
+      { distance: [1, 2], lightLevel: [1, 2], }
     ],
     expected: true,
   },
