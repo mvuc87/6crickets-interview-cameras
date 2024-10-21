@@ -1,8 +1,5 @@
-// `Range` is a built-in symbol.
-export interface CustomRange {
-  min: number;
-  max: number;
-}
+// Range: [min, max]
+type CustomRange = [number, number];
 
 export interface Camera {
   distance: CustomRange;
@@ -10,31 +7,29 @@ export interface Camera {
 }
 
 /**
- * This function determines if a provided list of hardware cameras is sufficient to fulfill desired characteristics of a software camera.
- * 
- * @param desiredDistance desired distance of the software camera
- * @param desiredLightLevel desired light level of the software camera
+ * @param desiredDistance desired range of distances (software camera)
+ * @param desiredLightLevel desired range of light levels (software camera)
  * @param hardware list of hardware cameras
  * 
  * @returns `true` if the provided list of hardware cameras is sufficient, `false` otherwise.
  */
 export function testCameras(desiredDistance: CustomRange, desiredLightLevel: CustomRange, hardware: Camera[]): boolean {
   // Range for distance (hardware cameras)
-  let minHardwareDistance: number | undefined = hardware[0]?.distance.min;
-  let maxHardwareDistance: number | undefined = hardware[0]?.distance.max;
+  let minHardwareDistance: number | undefined = hardware[0]?.distance[0];
+  let maxHardwareDistance: number | undefined = hardware[0]?.distance[1];
   // Range for light level (hardware cameras)
-  let minHardwareLightLevel: number | undefined = hardware[0]?.lightLevel.min;
-  let maxHardwareLightLevel: number | undefined = hardware[0]?.lightLevel.max;
-  // Find min and max for distance and light level (hardware camera)
+  let minHardwareLightLevel: number | undefined = hardware[0]?.lightLevel[0];
+  let maxHardwareLightLevel: number | undefined = hardware[0]?.lightLevel[1];
+  // Find min and max for distances and light levels (hardware camera)
   for (let i = 1; i < hardware.length; i++) {
     const current = hardware[i];
-    minHardwareDistance = Math.min(minHardwareDistance, current.distance.min);
-    maxHardwareDistance = Math.max(maxHardwareDistance, current.distance.max);
-    minHardwareLightLevel = Math.min(minHardwareLightLevel, current.lightLevel.min);
-    maxHardwareLightLevel = Math.max(maxHardwareLightLevel, current.lightLevel.max);
+    minHardwareDistance = Math.min(minHardwareDistance, current.distance[0]);
+    maxHardwareDistance = Math.max(maxHardwareDistance, current.distance[1]);
+    minHardwareLightLevel = Math.min(minHardwareLightLevel, current.lightLevel[0]);
+    maxHardwareLightLevel = Math.max(maxHardwareLightLevel, current.lightLevel[1]);
   }
-  return minHardwareDistance <= desiredDistance.min && desiredDistance.max <= maxHardwareDistance &&
-    minHardwareLightLevel <= desiredLightLevel.min && desiredLightLevel.max <= maxHardwareLightLevel;
+  return minHardwareDistance <= desiredDistance[0] && desiredDistance[1] <= maxHardwareDistance &&
+    minHardwareLightLevel <= desiredLightLevel[0] && desiredLightLevel[1] <= maxHardwareLightLevel;
 }
 
 /***************************
@@ -50,120 +45,86 @@ interface TestCase {
 
 const testCases: TestCase[] = [
   { // 0
-    desiredDistance: { min: 1, max: 2 },
-    desiredLghtLevel: { min: 1, max: 2 },
+    desiredDistance: [1, 2],
+    desiredLghtLevel: [1, 2],
     hardware: [],
     expected: false,
   },
   { // 1
-    desiredDistance:  { min: 1, max: 2 },
-    desiredLghtLevel: { min: 1, max: 2 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }],
+    desiredDistance:  [1, 2],
+    desiredLghtLevel: [1, 2],
+    hardware: [
+      { distance:   [1, 2], lightLevel: [1, 2], }
+    ],
     expected: true,
   },
   { // 2
-    desiredDistance:  { min: 1, max: 4 },
-    desiredLghtLevel: { min: 1, max: 4 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }, {
-      distance:   { min: 2, max: 3 },
-      lightLevel: { min: 2, max: 3 },
-    }, {
-      distance:   { min: 3, max: 4 },
-      lightLevel: { min: 3, max: 4 },
-    }],
+    desiredDistance:  [1, 4],
+    desiredLghtLevel: [1, 4],
+    hardware: [
+      { distance: [1, 2], lightLevel: [1, 2], },
+      { distance: [2, 3], lightLevel: [2, 3], },
+      { distance: [3, 4], lightLevel: [3, 4], },
+    ],
     expected: true,
   },
   { // 3
-    desiredDistance:  { min: 2,   max: 3 },
-    desiredLghtLevel: { min: 1.5, max: 3.5 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }, {
-      distance:   { min: 2, max: 3 },
-      lightLevel: { min: 2, max: 3 },
-    }, {
-      distance:   { min: 3, max: 4 },
-      lightLevel: { min: 3, max: 4 },
-    }],
+    desiredDistance:  [2, 3],
+    desiredLghtLevel: [1.5, 3.5],
+    hardware: [
+      { distance: [1, 2], lightLevel: [1, 2], },
+      { distance: [2, 3], lightLevel: [2, 3], },
+      { distance: [3, 4], lightLevel: [3, 4], }
+    ],
     expected: true,
   },
   { // 4
-    desiredDistance:  { min: 0,   max: 3 },
-    desiredLghtLevel: { min: 1.5, max: 3.5 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }, {
-      distance:   { min: 2, max: 3 },
-      lightLevel: { min: 2, max: 3 },
-    }, {
-      distance:   { min: 3, max: 4 },
-      lightLevel: { min: 3, max: 4 },
-    }],
+    desiredDistance:  [0, 3],
+    desiredLghtLevel: [1.5, 3.5],
+    hardware: [
+      { distance: [1, 2], lightLevel: [1, 2], },
+      { distance: [2, 3], lightLevel: [2, 3], },
+      { distance: [3, 4], lightLevel: [3, 4], },
+    ],
     expected: false,
   },
   { // 5
-    desiredDistance:  { min: 2,   max: 5 },
-    desiredLghtLevel: { min: 1.5, max: 3.5 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }, {
-      distance:   { min: 2, max: 3 },
-      lightLevel: { min: 2, max: 3 },
-    }, {
-      distance:   { min: 3, max: 4 },
-      lightLevel: { min: 3, max: 4 },
-    }],
+    desiredDistance:  [2, 5],
+    desiredLghtLevel: [1.5, 3.5],
+    hardware: [
+      { distance: [1, 2], lightLevel: [1, 2], },
+      { distance: [2, 3], lightLevel: [2, 3], },
+      { distance: [3, 4], lightLevel: [3, 4], },
+    ],
     expected: false,
   },
   { // 6
-    desiredDistance:  { min: 2,   max: 3 },
-    desiredLghtLevel: { min: 0, max: 3.5 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }, {
-      distance:   { min: 2, max: 3 },
-      lightLevel: { min: 2, max: 3 },
-    }, {
-      distance:   { min: 3, max: 4 },
-      lightLevel: { min: 3, max: 4 },
-    }],
+    desiredDistance:  [2, 3],
+    desiredLghtLevel: [0, 3.5],
+    hardware: [
+      { distance: [1, 2], lightLevel: [1, 2], },
+      { distance: [2, 3], lightLevel: [2, 3], },
+      { distance: [3, 4], lightLevel: [3, 4], },
+    ],
     expected: false,
   },
   { // 7
-    desiredDistance:  { min: 2,   max: 3 },
-    desiredLghtLevel: { min: 1.5, max: 5 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }, {
-      distance:   { min: 2, max: 3 },
-      lightLevel: { min: 2, max: 3 },
-    }, {
-      distance:   { min: 3, max: 4 },
-      lightLevel: { min: 3, max: 4 },
-    }],
+    desiredDistance:  [2, 3],
+    desiredLghtLevel: [1.5, 5],
+    hardware: [
+      { distance: [1, 2], lightLevel: [1, 2], },
+      { distance: [2, 3], lightLevel: [2, 3], },
+      { distance: [3, 4], lightLevel: [3, 4], },
+    ],
     expected: false,
   },
   { // 8
-    desiredDistance:  { min: 1, max: 3 },
-    desiredLghtLevel: { min: 2, max: 5 },
-    hardware: [{
-      distance:   { min: 1, max: 2 },
-      lightLevel: { min: 1, max: 2 },
-    }, {
-      distance:   { min: 4, max: 5 },
-      lightLevel: { min: 4, max: 5 },
-    }],
+    desiredDistance:  [1, 3],
+    desiredLghtLevel: [2, 5],
+    hardware: [
+      { distance: [1, 2], lightLevel: [1, 2], },
+      { distance: [4, 5], lightLevel: [4, 5], },
+    ],
     expected: true,
   },
 ];
@@ -171,7 +132,7 @@ const testCases: TestCase[] = [
 const results = testCases.map(({ desiredDistance, desiredLghtLevel, hardware, expected }, index) => {
   const actual = testCameras(desiredDistance, desiredLghtLevel, hardware);
   if (actual !== expected) {
-    console.error(`Test case with index ${index} failed!`);
+    console.log(`Test case with index ${index} failed!`);
     console.log(`   actual: ${actual}`);
     console.log(` expected: ${expected}`);
     return false;
